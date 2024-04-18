@@ -1,5 +1,6 @@
 package io.papermc.generator.rewriter.parser.step.model;
 
+import io.papermc.generator.rewriter.parser.ClosureAdvanceResult;
 import io.papermc.generator.rewriter.parser.ClosureType;
 import io.papermc.generator.rewriter.parser.LineParser;
 import io.papermc.generator.rewriter.parser.ParserException;
@@ -42,7 +43,7 @@ public final class AnnotationSteps implements StepHolder {
 
         this.name = line.getPartNameUntil('(', parser::skipCommentOrWhitespace, this.name);
 
-        if (line.canRead() && parser.nextSingleLineComment(line)) {
+        if (line.canRead() && parser.peekSingleLineComment(line)) {
             // ignore single line comment at the end and allow the name to continue
             line.setCursor(line.getTotalLength());
         }
@@ -50,11 +51,14 @@ public final class AnnotationSteps implements StepHolder {
     }
 
     public boolean skipParentheses(StringReader line, LineParser parser) {
-        while (!parser.advanceEnclosure(ClosureType.PARENTHESIS, line)) { // closed parenthesis?
+        ClosureAdvanceResult result;
+        while ((result = parser.advanceEnclosure0(ClosureType.PARENTHESIS, line)) != ClosureAdvanceResult.CHANGED) { // closed parenthesis?
             if (!line.canRead()) { // parenthesis on another line?
                 return true;
             }
-            line.skip();
+            if (result == ClosureAdvanceResult.IGNORED) {
+                line.skip();
+            }
         }
         return false;
     }

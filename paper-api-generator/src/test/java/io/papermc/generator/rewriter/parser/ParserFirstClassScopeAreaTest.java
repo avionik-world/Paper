@@ -4,6 +4,7 @@ import io.papermc.generator.rewriter.ClassNamed;
 import io.papermc.generator.rewriter.context.ImportTypeCollector;
 import io.papermc.generator.rewriter.data.sample.parser.area.AnnotationClass;
 import io.papermc.generator.rewriter.data.sample.parser.area.AnnotationPresentClass;
+import io.papermc.generator.rewriter.data.sample.parser.area.AnnotationTrapClass;
 import io.papermc.generator.rewriter.data.sample.parser.area.FancyNewlineAnnotationPresentClass;
 import io.papermc.generator.rewriter.data.sample.parser.area.FancyScopeClass;
 import io.papermc.generator.rewriter.data.sample.parser.area.FancyScopeClass2;
@@ -39,6 +40,7 @@ public class ParserFirstClassScopeAreaTest extends ParserTest {
             SimpleTrapClass.class,
             AnnotationClass.class,
             AnnotationPresentClass.class,
+            AnnotationTrapClass.class,
             FancyNewlineAnnotationPresentClass.class,
             MixedAnnotationPresentClass.class,
             NewlineScopedClass.class,

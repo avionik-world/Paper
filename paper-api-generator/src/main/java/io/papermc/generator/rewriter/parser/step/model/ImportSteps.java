@@ -33,7 +33,7 @@ public final class ImportSteps implements StepHolder {
     }
 
     public void enforceSpace(StringReader line, LineParser parser) {
-        if (line.canRead() && parser.nextSingleLineComment(line)) {
+        if (line.canRead() && parser.peekSingleLineComment(line)) {
             // ignore single line comment at the end of import/static
             line.setCursor(line.getTotalLength());
             return;
@@ -81,7 +81,7 @@ public final class ImportSteps implements StepHolder {
             return true;
         }
 
-        if (parser.nextSingleLineComment(line)) {
+        if (parser.peekSingleLineComment(line)) {
             line.setCursor(line.getTotalLength());
         }
 
@@ -115,7 +115,7 @@ public final class ImportSteps implements StepHolder {
                 line.skip();
                 parser.getSteps().addPriority(this.skipUntilSemicolonAfterStarStep);
                 return false;
-            } else if (parser.nextSingleLineComment(line)) {
+            } else if (parser.peekSingleLineComment(line)) {
                 // ignore single line comment at the end of the name
                 line.setCursor(line.getTotalLength());
             }

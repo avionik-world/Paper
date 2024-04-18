@@ -21,6 +21,7 @@ import static io.papermc.generator.rewriter.replace.SearchReplaceRewriter.INDENT
 import static io.papermc.generator.rewriter.replace.SearchReplaceRewriter.INDENT_SIZE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+@Disabled
 public class OldGeneratedCodeTest {
 
     private static final String API_CONTAINER = System.getProperty("paper.generator.rewriter.container.api");

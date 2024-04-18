@@ -113,9 +113,13 @@ public class StringReader implements ImmutableStringReader {
     }
 
     public boolean trySkipWhitespace(final int size) {
+        if (!this.canRead(size)) {
+            return false;
+        }
+
         int delta = 0;
         int previousCursor = this.cursor;
-        while (delta < size && this.canRead() && Character.isWhitespace(this.peek())) {
+        while (delta < size && Character.isWhitespace(this.peek())) {
             this.skip();
             delta++;
         }
@@ -128,9 +132,13 @@ public class StringReader implements ImmutableStringReader {
     }
 
     public boolean trySkipChars(final int size, final char value) {
+        if (!this.canRead(size)) {
+            return false;
+        }
+
         int delta = 0;
         int previousCursor = this.cursor;
-        while (delta < size && this.canRead() && this.peek() == value) {
+        while (delta < size && this.peek() == value) {
             this.skip();
             delta++;
         }
@@ -143,14 +151,18 @@ public class StringReader implements ImmutableStringReader {
     }
 
     public boolean trySkipString(final String value) {
-        char[] chars = value.toCharArray();
+        int size = value.length();
+        if (!this.canRead(size)) {
+            return false;
+        }
+
         int delta = 0;
         int previousCursor = this.cursor;
-        while (this.canRead() && delta < chars.length && chars[delta] == this.peek()) {
+        while (delta < size && value.charAt(delta) == this.peek()) {
             this.skip();
             delta++;
         }
-        if (delta == chars.length) {
+        if (delta == size) {
             return true;
         }
 
@@ -161,16 +173,6 @@ public class StringReader implements ImmutableStringReader {
     public String readStringUntil(final char terminator) {
         final int start = this.cursor;
         this.skipStringUntil(terminator);
-        return this.string.substring(start, this.cursor);
-    }
-
-    @Nullable
-    public String getStringUntil(final char terminator) {
-        final int start = this.cursor;
-        this.skipStringUntil(terminator);
-        if (!this.canRead()) {
-            return null;
-        }
         return this.string.substring(start, this.cursor);
     }
 
