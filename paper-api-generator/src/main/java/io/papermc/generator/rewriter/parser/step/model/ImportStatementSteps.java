@@ -12,7 +12,7 @@ import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
 
 // start once "import" is detected unless commented
 // order is: enforceSpace -> checkStatic (-> enforceSpace) -> getPartName (-> skipUntilSemicolonAfterStar) -> collectImport
-public final class ImportSteps implements StepHolder {
+public final class ImportStatementSteps implements StepHolder {
 
     public static boolean canStart(StringReader line) {
         return line.trySkipString("import");
@@ -28,12 +28,12 @@ public final class ImportSteps implements StepHolder {
     private boolean isStatic;
     private @MonotonicNonNull ProtoTypeName name;
 
-    public ImportSteps(ImportCollector collector) {
+    public ImportStatementSteps(ImportCollector collector) {
         this.collector = collector;
     }
 
     public void enforceSpace(StringReader line, LineParser parser) {
-        if (line.canRead() && parser.peekSingleLineComment(line)) {
+        if (parser.peekSingleLineComment(line)) {
             // ignore single line comment at the end of import/static
             line.setCursor(line.getTotalLength());
             return;

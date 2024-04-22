@@ -1,19 +1,23 @@
 package io.papermc.generator.rewriter.parser.step.model;
 
-import io.papermc.generator.rewriter.parser.ClosureAdvanceResult;
-import io.papermc.generator.rewriter.parser.ClosureType;
 import io.papermc.generator.rewriter.parser.LineParser;
 import io.papermc.generator.rewriter.parser.ParserException;
 import io.papermc.generator.rewriter.parser.ProtoTypeName;
+import io.papermc.generator.rewriter.parser.ClosureAdvanceResult;
+import io.papermc.generator.rewriter.parser.closure.Closure;
+import io.papermc.generator.rewriter.parser.closure.ClosureType;
 import io.papermc.generator.rewriter.parser.step.IterativeStep;
 import io.papermc.generator.rewriter.parser.step.StepHolder;
 import io.papermc.generator.rewriter.parser.StringReader;
 import io.papermc.generator.utils.NamingManager;
 import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 // start once "@" is detected unless commented
-// order is: skipAtSign -> skipPartName -> checkOpenParenthesis (-> skipParentheses)
-public final class AnnotationSteps implements StepHolder {
+// order is: skipAtSign -> skipPartName -> checkAnnotationName -> checkOpenParenthesis (-> skipParentheses)
+public final class AnnotationSkipSteps implements StepHolder {
 
     public static boolean canStart(char currentChar) {
         return currentChar == '@';
@@ -22,6 +26,7 @@ public final class AnnotationSteps implements StepHolder {
     private final IterativeStep skipParenthesesStep = IterativeStep.createUntil(this::skipParentheses);
 
     private @MonotonicNonNull ProtoTypeName name;
+    private Closure parenthesisClosure;
 
     public void skipAtSign(StringReader line, LineParser parser) {
         line.skip(); // skip @
@@ -43,20 +48,29 @@ public final class AnnotationSteps implements StepHolder {
 
         this.name = line.getPartNameUntil('(', parser::skipCommentOrWhitespace, this.name);
 
-        if (line.canRead() && parser.peekSingleLineComment(line)) {
+        if (parser.peekSingleLineComment(line)) {
             // ignore single line comment at the end and allow the name to continue
             line.setCursor(line.getTotalLength());
         }
         return !line.canRead();
     }
 
+    private static final List<ClosureType> IGNORE_NESTED_CLOSURES;
+    static {
+        Set<ClosureType> types = new HashSet<>(ClosureType.LEAFS.size() + 1);
+        types.addAll(ClosureType.LEAFS);
+        types.add(ClosureType.PARENTHESIS); // skip nested annotation too
+
+        IGNORE_NESTED_CLOSURES = ClosureType.prioritySort(types);
+    }
+
     public boolean skipParentheses(StringReader line, LineParser parser) {
         ClosureAdvanceResult result;
-        while ((result = parser.advanceEnclosure0(ClosureType.PARENTHESIS, line)) != ClosureAdvanceResult.CHANGED) { // closed parenthesis?
+        while (!(result = parser.tryAdvanceEndClosure(this.parenthesisClosure, line)).found()) {
             if (!line.canRead()) { // parenthesis on another line?
                 return true;
             }
-            if (result == ClosureAdvanceResult.IGNORED) {
+            if (!result.advanced() && !parser.trySkipNestedClosures(this.parenthesisClosure, line, IGNORE_NESTED_CLOSURES)) {
                 line.skip();
             }
         }
@@ -88,7 +102,8 @@ public final class AnnotationSteps implements StepHolder {
             return true;
         }
 
-        if (parser.advanceEnclosure(ClosureType.PARENTHESIS, line)) { // open parenthesis?
+        if (parser.tryAdvanceStartClosure(ClosureType.PARENTHESIS, line)) { // open parenthesis?
+            this.parenthesisClosure = parser.getNearestClosure();
             parser.getSteps().addPriority(this.skipParenthesesStep);
         }
         return false;
