@@ -45,11 +45,12 @@ public class LineParser {
     }
 
     // for all closure, leaf closure type should use the other similar method after this one if possible
-    // ignoreNestedClosureTypes order matter here
     public ClosureAdvanceResult tryAdvanceEndClosure(@NotNull Closure closure, @NotNull StringReader line) {
         Preconditions.checkState(this.nearestClosure != null && this.nearestClosure.hasUpperClosure(closure), "Need to be in an upper closure of " + closure + " to find its end identifier");
         boolean directClosureFound = this.nearestClosure == closure;
-        boolean canSearchEndClosure = this.nearestClosure == null || directClosureFound;
+        if (!directClosureFound) {
+            return ClosureAdvanceResult.IGNORED;
+        }
 
         char previousChar = '\0';
         if (line.getCursor() >= 1) {
@@ -57,37 +58,32 @@ public class LineParser {
         }
 
         ClosureType type = closure.getType();
-        if (canSearchEndClosure && line.trySkipString(type.end)) { // closure has been consumed
+        if (line.trySkipString(type.end)) { // closure has been consumed
             // skip escape closed closure
-            if (type.end.length() == 1 && type.start.equals(type.end) && ClosureType.ALLOW_ESCAPE.contains(type)) {
-                if (previousChar == '\\') {
-                    return ClosureAdvanceResult.skip();
-                }
+            if (type.escapableByPreviousChar() && previousChar == '\\') {
+                return ClosureAdvanceResult.SKIPPED;
             }
 
             this.nearestClosure.onEnd(line);
-            if (this.nearestClosure.parent() != null) {
-                this.nearestClosure = this.nearestClosure.parent();
-            } else {
-                this.nearestClosure = null;
-            }
-            return ClosureAdvanceResult.find(directClosureFound);
+            this.nearestClosure = this.nearestClosure.parent();
+            return ClosureAdvanceResult.CHANGED;
         }
 
-        return ClosureAdvanceResult.NONE;
+        return ClosureAdvanceResult.IGNORED;
     }
 
+    // computedTypes list order matters here
     public boolean trySkipNestedClosures(@NotNull Closure inClosure, @NotNull StringReader line, @NotNull List<ClosureType> computedTypes) {
         boolean directClosureFound = this.nearestClosure == inClosure;
         boolean isLeaf = this.nearestClosure != null && ClosureType.LEAFS.contains(this.nearestClosure.getType());
         if (this.nearestClosure != null && !directClosureFound) {
-            final boolean advanced;
+            final ClosureAdvanceResult result;
             if (isLeaf) {
-                advanced = this.tryAdvanceEndClosure(this.nearestClosure.getType(), line) != ClosureTypeAdvanceResult.IGNORED;
+                result = this.tryAdvanceEndLeafClosure(this.nearestClosure.getType(), line);
             } else {
-                advanced = this.tryAdvanceEndClosure(this.nearestClosure, line).advanced();
+                result = this.tryAdvanceEndClosure(this.nearestClosure, line);
             }
-            if (advanced) {
+            if (result != ClosureAdvanceResult.IGNORED) {
                 return true;
             }
         }
@@ -102,10 +98,9 @@ public class LineParser {
         return false;
     }
 
-    // only valid for leaf closure type
-    public ClosureTypeAdvanceResult tryAdvanceEndClosure(@NotNull ClosureType type, @NotNull StringReader line) {
-        Preconditions.checkArgument(ClosureType.LEAFS.contains(type), "Only leaf closure can be advanced using its type only, for other, use the closure equivalent method to take in account nested closure");
-        Preconditions.checkState(this.nearestClosure != null && this.nearestClosure.getType() == type, "Need an direct upper closure of " + type);
+    public ClosureAdvanceResult tryAdvanceEndLeafClosure(@NotNull ClosureType type, @NotNull StringReader line) {
+        Preconditions.checkArgument(ClosureType.LEAFS.contains(type), "Only leaf closure can be advanced using its type only, for other types use the closure equivalent method to take in account nested closures");
+        Preconditions.checkState(this.nearestClosure != null && this.nearestClosure.getType() == type, "Need a direct upper closure of " + type);
 
         char previousChar = '\0';
         if (line.getCursor() >= 1) {
@@ -114,36 +109,47 @@ public class LineParser {
 
         if (line.trySkipString(type.end)) { // closure has been consumed
             // skip escape closed closure
-            if (type.end.length() == 1 && type.start.equals(type.end) && ClosureType.ALLOW_ESCAPE.contains(type)) {
-                if (previousChar == '\\') {
-                    return ClosureTypeAdvanceResult.SKIPPED;
-                }
+            if (type.escapableByPreviousChar() && previousChar == '\\') {
+                return ClosureAdvanceResult.SKIPPED;
             }
 
             this.nearestClosure.onEnd(line);
-            if (this.nearestClosure.parent() != null) {
-                this.nearestClosure = this.nearestClosure.parent();
-            } else {
-                this.nearestClosure = null;
-            }
-            return ClosureTypeAdvanceResult.CHANGED;
+            this.nearestClosure = this.nearestClosure.parent();
+            return ClosureAdvanceResult.CHANGED;
         }
-        return ClosureTypeAdvanceResult.IGNORED;
+        return ClosureAdvanceResult.IGNORED;
     }
 
-    public boolean skipComment(@NotNull StringReader line) {
+    // generic usage that check other leaf closure
+    private boolean skipLeafClosure(@NotNull ClosureType type, @NotNull StringReader line) {
+        final boolean isInClosure;
+        if (this.nearestClosure != null) {
+            isInClosure = this.nearestClosure.getType() == type;
+            if (!isInClosure && ClosureType.LEAFS.contains(this.nearestClosure.getType())) {
+                // don't try to advance the pointer when the nearest closure is another
+                // leaf closure (leaf closure doesn't allow nested type)
+                return false;
+            }
+        } else {
+            isInClosure = false;
+        }
+
         int previousCursor = line.getCursor();
-        if ((this.nearestClosure != null && this.nearestClosure.getType() == ClosureType.COMMENT) ||
-            this.tryAdvanceStartClosure(ClosureType.COMMENT, line)) { // open comment?
-            ClosureTypeAdvanceResult result;
-            while ((result = this.tryAdvanceEndClosure(ClosureType.COMMENT, line)) != ClosureTypeAdvanceResult.CHANGED && line.canRead()) { // closed comment?
-                if (result == ClosureTypeAdvanceResult.IGNORED) {
+        if (isInClosure ||
+            this.tryAdvanceStartClosure(type, line)) { // open closure?
+            ClosureAdvanceResult result;
+            while ((result = this.tryAdvanceEndLeafClosure(type, line)) != ClosureAdvanceResult.CHANGED && line.canRead()) { // closed closure?
+                if (result == ClosureAdvanceResult.IGNORED) {
                     line.skip();
                 }
             }
             return line.getCursor() > previousCursor;
         }
         return false;
+    }
+
+    public boolean skipComment(@NotNull StringReader line) {
+        return this.skipLeafClosure(ClosureType.COMMENT, line);
     }
 
     public boolean skipCommentOrWhitespace(@NotNull StringReader line) {
@@ -165,6 +171,7 @@ public class LineParser {
         return skipped;
     }
 
+    // note: always check single line comment AFTER multi line comment unless exception
     public boolean peekSingleLineComment(@NotNull StringReader line) {
         return line.canRead(2) && line.peek() == '/' && line.peek(1) == '/';
     }

@@ -1,9 +1,9 @@
 package io.papermc.generator.rewriter.parser.step.model;
 
+import io.papermc.generator.rewriter.parser.ClosureAdvanceResult;
 import io.papermc.generator.rewriter.parser.LineParser;
 import io.papermc.generator.rewriter.parser.ParserException;
 import io.papermc.generator.rewriter.parser.ProtoTypeName;
-import io.papermc.generator.rewriter.parser.ClosureAdvanceResult;
 import io.papermc.generator.rewriter.parser.closure.Closure;
 import io.papermc.generator.rewriter.parser.closure.ClosureType;
 import io.papermc.generator.rewriter.parser.step.IterativeStep;
@@ -57,24 +57,40 @@ public final class AnnotationSkipSteps implements StepHolder {
 
     private static final List<ClosureType> IGNORE_NESTED_CLOSURES;
     static {
-        Set<ClosureType> types = new HashSet<>(ClosureType.LEAFS.size() + 1);
+        Set<ClosureType> types = new HashSet<>(ClosureType.LEAFS.size());
         types.addAll(ClosureType.LEAFS);
         types.add(ClosureType.PARENTHESIS); // skip nested annotation too
+        types.remove(ClosureType.COMMENT); // comment will be skipped separately to simplify the iteration
 
         IGNORE_NESTED_CLOSURES = ClosureType.prioritySort(types);
     }
 
     public boolean skipParentheses(StringReader line, LineParser parser) {
-        ClosureAdvanceResult result;
-        while (!(result = parser.tryAdvanceEndClosure(this.parenthesisClosure, line)).found()) {
-            if (!line.canRead()) { // parenthesis on another line?
-                return true;
+        while (true) {
+            if (parser.skipCommentOrWhitespace(line)) {
+                break;
             }
-            if (!result.advanced() && !parser.trySkipNestedClosures(this.parenthesisClosure, line, IGNORE_NESTED_CLOSURES)) {
+
+            if (parser.getNearestClosure() == null || !ClosureType.LEAFS.contains(parser.getNearestClosure().getType())) { // peekSingleLineComment doesn't check closure
+                if (parser.peekSingleLineComment(line)) {
+                    line.setCursor(line.getTotalLength());
+                    break;
+                }
+            }
+
+            ClosureAdvanceResult result = parser.tryAdvanceEndClosure(this.parenthesisClosure, line);
+            if (result == ClosureAdvanceResult.CHANGED) {
+                return false;
+            }
+            if (!line.canRead()) {
+                break;
+            }
+            if (result == ClosureAdvanceResult.IGNORED && !parser.trySkipNestedClosures(this.parenthesisClosure, line, IGNORE_NESTED_CLOSURES)) {
                 line.skip();
             }
         }
-        return false;
+
+        return true; // parenthesis on another line?
     }
 
     public void checkAnnotationName(StringReader line, LineParser parser) {

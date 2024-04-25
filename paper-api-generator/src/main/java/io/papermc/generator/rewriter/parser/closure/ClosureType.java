@@ -22,8 +22,12 @@ public enum ClosureType {
         this.end = end;
     }
 
-    public static final EnumSet<ClosureType> ALLOW_ESCAPE = EnumSet.of(STRING, CHAR, PARAGRAPH);
-    public static final EnumSet<ClosureType> LEAFS = EnumSet.of(COMMENT, STRING, CHAR, PARAGRAPH);
+    public boolean escapableByPreviousChar() {
+        return ALLOW_ESCAPE.contains(this) && this.end.length() == 1 && this.start.equals(this.end);
+    }
+
+    private static final Set<ClosureType> ALLOW_ESCAPE = EnumSet.of(STRING, CHAR, PARAGRAPH);
+    public static final Set<ClosureType> LEAFS = EnumSet.of(COMMENT, STRING, CHAR, PARAGRAPH);
 
     private static final List<ClosureType> CHECK_FIRST = List.of(PARAGRAPH);
 

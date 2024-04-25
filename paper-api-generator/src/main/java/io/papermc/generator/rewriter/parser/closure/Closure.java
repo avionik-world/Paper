@@ -14,12 +14,12 @@ public interface Closure {
 
     default boolean hasUpperClosure(Closure closure) {
         Closure parent = this;
-        while (parent != null) {
+        do {
             if (parent == closure) {
                 return true;
             }
             parent = parent.parent();
-        }
+        } while (parent != null);
         return false;
     }
 

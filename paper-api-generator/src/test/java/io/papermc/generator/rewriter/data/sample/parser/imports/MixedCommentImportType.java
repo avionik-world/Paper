@@ -8,11 +8,9 @@ import// discard?
 
         NamespacedKey// discard?
     /* hi */; // multi line import
-;;;;; // will fail in Java 21+ but only in imports!
 
-;;
-;;;import// discard?
-    static// discard?
+import/*a*//// discard?
+    static/*a*/// discard?
     org// discard?
         /* hi */    . /* hi */
 

@@ -33,16 +33,22 @@ public final class ImportStatementSteps implements StepHolder {
     }
 
     public void enforceSpace(StringReader line, LineParser parser) {
-        if (parser.peekSingleLineComment(line)) {
+        int spaceSkipped = line.skipWhitespace();
+
+        boolean filledGap = false;
+        filledGap |= parser.skipComment(line);
+
+        boolean hasSingleLineComment = parser.peekSingleLineComment(line);
+        filledGap |= hasSingleLineComment;
+
+        if (hasSingleLineComment) {
             // ignore single line comment at the end of import/static
             line.setCursor(line.getTotalLength());
-            return;
         }
 
-        if (!parser.skipComment(line)) {
-            if (line.skipWhitespace() == 0) { // expect at least one space between import, static and type name unless a multi comment is here to fill the gap
-                parser.getSteps().clearRemaining();
-            }
+        if (!filledGap && spaceSkipped == 0) {
+            // expect at least one space between import, static and type name unless a comment is here to fill the gap
+            parser.getSteps().clearRemaining();
         }
     }
 

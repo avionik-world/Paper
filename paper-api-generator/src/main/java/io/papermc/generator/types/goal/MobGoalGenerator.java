@@ -194,18 +194,17 @@ public class MobGoalGenerator extends SimpleGenerator {
             classes = scanResult.getSubclasses(Goal.class.getName()).loadClasses(Goal.class);
         }
 
-        List<VanillaGoal> vanillaGoals = classes.stream()
+        List<GoalKey<Mob>> vanillaGoals = classes.stream()
             .filter(clazz -> !java.lang.reflect.Modifier.isAbstract(clazz.getModifiers()))
             .filter(clazz -> !clazz.isAnonymousClass() || ClassHelper.getRootClass(clazz) != GoalSelector.class)
             .filter(clazz -> !WrappedGoal.class.equals(clazz)) // TODO - properly fix
-            .map(goalClass -> new VanillaGoal(goalClass, MobGoalNames.getKey(goalClass)))
-            .sorted(Comparator.<VanillaGoal, String>comparing(o -> o.key().getEntityClass().getSimpleName())
-                .thenComparing(vanillaGoalKey -> vanillaGoalKey.key().getNamespacedKey().getKey())
+            .map(MobGoalNames::getKey)
+            .sorted(Comparator.<GoalKey<?>, String>comparing(o -> o.getEntityClass().getSimpleName())
+                .thenComparing(vanillaGoalKey -> vanillaGoalKey.getNamespacedKey().getKey())
             )
             .toList();
 
-        for (final VanillaGoal vanillaGoal : vanillaGoals) {
-            GoalKey<?> goalKey = vanillaGoal.key();
+        for (final GoalKey<?> goalKey : vanillaGoals) {
             String keyPath = goalKey.getNamespacedKey().getKey();
             String fieldName = Formatting.formatPathAsField(keyPath);
 
@@ -234,9 +233,6 @@ public class MobGoalGenerator extends SimpleGenerator {
         }
 
         return typeBuilder.addMethod(createMethod.build()).build();
-    }
-
-    record VanillaGoal(Class<? extends Goal> goalClass, GoalKey<?> key) {
     }
 
     record DeprecatedGoal(Class<? extends Mob> mobClass, String path, @Nullable String removalVersion,

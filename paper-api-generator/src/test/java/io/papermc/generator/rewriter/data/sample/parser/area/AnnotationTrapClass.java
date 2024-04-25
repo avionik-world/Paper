@@ -1,14 +1,22 @@
 package io.papermc.generator.rewriter.data.sample.parser.area;
 
-@AnnotationTrapClass.Trapped(strings = {"trap: )   \" )  {"}, annotation = @AnnotationTrapClass.Trapped2(strings = {"trap: )   \" )  {"}, chars = {')', '{', '\''}, paragraphs = """
+@AnnotationTrapClass.Trapped
+    (
+    /* ) { */  // ) {
+    /* ) { */
+    strings = {"trap: )   \" )  { // /* "}, annotation = @AnnotationTrapClass.Trapped2(strings = {"trap: )   \" )  {"}, chars = {')', '{', '\''}, paragraphs = """
     )
     \"\"\"
     {
-    """, clazz = AnnotationTrapClass.Trapped.class), chars = {')', '{', '\''}, paragraphs = """
+    """, clazz = AnnotationTrapClass/* ) { */ ./* ) { // */ Trapped.class/* ) { */ ) /* ) { */ , chars = {')', '{', '\''}, paragraphs = /* ) { */ // ) {
+        """
+        )
+        \"\"\"
+        {
+        """
+    /* ) { */ // ) {
+    /* ) { */
     )
-    \"\"\"
-    {
-    """)
 public class AnnotationTrapClass { // << 33
 
     @interface Trapped {
