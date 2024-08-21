@@ -5064,7 +5064,7 @@ index 12db4c5db3d7951df984db03d09d14d808e58699..44d4aee059d74676bffb8b6bc6f6ad4d
      @Override
      public float getBukkitYaw() {
 diff --git a/src/main/java/net/minecraft/world/item/ItemStack.java b/src/main/java/net/minecraft/world/item/ItemStack.java
-index 15f0b0977fe7b41e29346df9d49120f14f02ea43..b6cb1de08e955dfc99a0cb736b2ed456c99fde5c 100644
+index d7a3f704cce228c50d26f1ecd98e819eca561bfc..3457e1c9791b294b5e4dab478d90cdd1a1cf7fef 100644
 --- a/src/main/java/net/minecraft/world/item/ItemStack.java
 +++ b/src/main/java/net/minecraft/world/item/ItemStack.java
 @@ -953,6 +953,25 @@ public final class ItemStack implements DataComponentHolder {
@@ -5351,10 +5351,10 @@ index 497792978bdf0e6a53d772304770e8df3e7416ea..c5454b92ca2565461c799d7340160f9f
      public WorldBorder getWorldBorder() {
          return this.level.getWorldBorder();
 diff --git a/src/main/java/net/minecraft/world/level/block/state/BlockBehaviour.java b/src/main/java/net/minecraft/world/level/block/state/BlockBehaviour.java
-index 9569d9d1c8f809420e08038e5bc38c2c7887ff90..d5d638d955dbcc1034bc79aace77d43e20db5995 100644
+index e0594a1c381487b43bfc55212044e1b3122cee66..59fcaca90b67c03e1a6799e58061dbae3b1f1ceb 100644
 --- a/src/main/java/net/minecraft/world/level/block/state/BlockBehaviour.java
 +++ b/src/main/java/net/minecraft/world/level/block/state/BlockBehaviour.java
-@@ -834,12 +834,14 @@ public abstract class BlockBehaviour implements FeatureElement {
+@@ -841,12 +841,14 @@ public abstract class BlockBehaviour implements FeatureElement {
              }
          }
  
@@ -5369,7 +5369,7 @@ index 9569d9d1c8f809420e08038e5bc38c2c7887ff90..d5d638d955dbcc1034bc79aace77d43e
  
              this.legacySolid = this.calculateSolid();
          }
-@@ -886,8 +888,8 @@ public abstract class BlockBehaviour implements FeatureElement {
+@@ -893,8 +895,8 @@ public abstract class BlockBehaviour implements FeatureElement {
              return this.getBlock().getOcclusionShape(this.asState(), world, pos);
          }
  
@@ -5421,7 +5421,7 @@ index a52077f0d93c94b0ea644bc14b9b28e84fd1b154..dcc0acd259920463a4464213b9a5e793
      @Nullable
      @Override
 diff --git a/src/main/java/net/minecraft/world/level/chunk/LevelChunk.java b/src/main/java/net/minecraft/world/level/chunk/LevelChunk.java
-index b537e7a079497db428db405edfccde74f32f4208..c664021dbfffcf0db3247041270ce9a1ee6940de 100644
+index 5b73fcfe278f57de249f3a96da58dc08eda7aff6..25380a44e5cc94f3924cfee6a03c3091fea04ae2 100644
 --- a/src/main/java/net/minecraft/world/level/chunk/LevelChunk.java
 +++ b/src/main/java/net/minecraft/world/level/chunk/LevelChunk.java
 @@ -116,6 +116,10 @@ public class LevelChunk extends ChunkAccess {
@@ -5480,7 +5480,7 @@ index b537e7a079497db428db405edfccde74f32f4208..c664021dbfffcf0db3247041270ce9a1
      @Override
      public FluidState getFluidState(BlockPos pos) {
          return this.getFluidState(pos.getX(), pos.getY(), pos.getZ());
-@@ -549,7 +582,11 @@ public class LevelChunk extends ChunkAccess {
+@@ -554,7 +587,11 @@ public class LevelChunk extends ChunkAccess {
  
      // CraftBukkit start
      public void loadCallback() {
@@ -5492,7 +5492,7 @@ index b537e7a079497db428db405edfccde74f32f4208..c664021dbfffcf0db3247041270ce9a1
          if (server != null) {
              /*
               * If it's a new world, the first few chunks are generated inside
-@@ -590,6 +627,10 @@ public class LevelChunk extends ChunkAccess {
+@@ -595,6 +632,10 @@ public class LevelChunk extends ChunkAccess {
          server.getPluginManager().callEvent(unloadEvent);
          // note: saving can be prevented, but not forced if no saving is actually required
          this.mustNotSave = !unloadEvent.isSaveChunk();
@@ -5563,7 +5563,7 @@ index 34933c5324126f9afdc5cba9dea997ace8f01806..1cfc906317f07a44f06a4adf021c44e3
              return false;
          } else {
 diff --git a/src/main/java/org/bukkit/craftbukkit/CraftServer.java b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
-index f04c0f8b3905b488aac221fedde335a54ad1ff58..7f8864da8a6f9c2410191851add1ba566b8c171c 100644
+index a094eb1348509fea0c3d253cddfe409998dcbf23..2ea3ad9ab43dec0555d6716bebefbc3bb6553f1a 100644
 --- a/src/main/java/org/bukkit/craftbukkit/CraftServer.java
 +++ b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
 @@ -2601,4 +2601,9 @@ public final class CraftServer implements Server {

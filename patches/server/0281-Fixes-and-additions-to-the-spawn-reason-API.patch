@@ -201,6 +201,18 @@ index dbc0b69603dcffbf3d41d79719aa0f2b7da4a131..dd86f5ec5b2051aeea4e19ff97146362
                  .isPresent();
      }
  
+diff --git a/src/main/java/net/minecraft/world/level/block/entity/trialspawner/TrialSpawner.java b/src/main/java/net/minecraft/world/level/block/entity/trialspawner/TrialSpawner.java
+index c3f6522a7dc0777c5b3fa2bac63a8901f96d9f38..9b336f651ead8111a0b2c0fedad9331f594b2990 100644
+--- a/src/main/java/net/minecraft/world/level/block/entity/trialspawner/TrialSpawner.java
++++ b/src/main/java/net/minecraft/world/level/block/entity/trialspawner/TrialSpawner.java
+@@ -231,6 +231,7 @@ public final class TrialSpawner {
+                             }
+ 
+                             entity.spawnedViaMobSpawner = true; // Paper
++                            entity.spawnReason = org.bukkit.event.entity.CreatureSpawnEvent.SpawnReason.TRIAL_SPAWNER; // Paper - Entity#getEntitySpawnReason
+                             // CraftBukkit start
+                             if (org.bukkit.craftbukkit.event.CraftEventFactory.callTrialSpawnerSpawnEvent(entity, pos).isCancelled()) {
+                                 return Optional.empty();
 diff --git a/src/main/java/org/bukkit/craftbukkit/entity/CraftEntity.java b/src/main/java/org/bukkit/craftbukkit/entity/CraftEntity.java
 index bddf98bdf60473eb1d2e533cf533ed7eee797aaa..ce70c8fddbe63d0af2b1f988ce9a2b40c5d48066 100644
 --- a/src/main/java/org/bukkit/craftbukkit/entity/CraftEntity.java

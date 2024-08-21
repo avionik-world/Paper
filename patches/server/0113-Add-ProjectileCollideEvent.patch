@@ -6,13 +6,13 @@ Subject: [PATCH] Add ProjectileCollideEvent
 Deprecated now and replaced with ProjectileHitEvent
 
 diff --git a/src/main/java/org/bukkit/craftbukkit/event/CraftEventFactory.java b/src/main/java/org/bukkit/craftbukkit/event/CraftEventFactory.java
-index 6ffc5b9eb2fa084c7cf397d944e6fc1d8d770dbb..50a4e657508e21717a61900660d85203d9373e19 100644
+index d36e039aa5f1cf84179def5df5addaf448f54bd2..91180d7ad705ca97c0df43debc14b204127165d0 100644
 --- a/src/main/java/org/bukkit/craftbukkit/event/CraftEventFactory.java
 +++ b/src/main/java/org/bukkit/craftbukkit/event/CraftEventFactory.java
-@@ -1308,6 +1308,17 @@ public class CraftEventFactory {
-         return CraftItemStack.asNMSCopy(bitem);
+@@ -1323,6 +1323,16 @@ public class CraftEventFactory {
+         Bukkit.getPluginManager().callEvent(crafterCraftEvent);
+         return crafterCraftEvent;
      }
- 
 +    // Paper start
 +    @Deprecated
 +    public static com.destroystokyo.paper.event.entity.ProjectileCollideEvent callProjectileCollideEvent(Entity entity, EntityHitResult position) {
@@ -23,11 +23,10 @@ index 6ffc5b9eb2fa084c7cf397d944e6fc1d8d770dbb..50a4e657508e21717a61900660d85203
 +        return event;
 +    }
 +    // Paper end
-+
+ 
      public static ProjectileLaunchEvent callProjectileLaunchEvent(Entity entity) {
          Projectile bukkitEntity = (Projectile) entity.getBukkitEntity();
-         ProjectileLaunchEvent event = new ProjectileLaunchEvent(bukkitEntity);
-@@ -1332,8 +1343,15 @@ public class CraftEventFactory {
+@@ -1348,8 +1358,15 @@ public class CraftEventFactory {
          if (position.getType() == HitResult.Type.ENTITY) {
              hitEntity = ((EntityHitResult) position).getEntity().getBukkitEntity();
          }

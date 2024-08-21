@@ -5,10 +5,10 @@ Subject: [PATCH] add hand to BlockMultiPlaceEvent
 
 
 diff --git a/src/main/java/org/bukkit/craftbukkit/event/CraftEventFactory.java b/src/main/java/org/bukkit/craftbukkit/event/CraftEventFactory.java
-index d3baf38cf45d13eeffedcc697468842e3ac117d3..3ba695a29dcf9e7137dae16835e6f7a375d560f7 100644
+index 6a018f9c289a539b07855d75e4cc2d3c2828ded1..e25ca301a4b9b252d3f75013e4e14df9b14aa7b9 100644
 --- a/src/main/java/org/bukkit/craftbukkit/event/CraftEventFactory.java
 +++ b/src/main/java/org/bukkit/craftbukkit/event/CraftEventFactory.java
-@@ -406,13 +406,18 @@ public class CraftEventFactory {
+@@ -412,13 +412,18 @@ public class CraftEventFactory {
          }
  
          org.bukkit.inventory.ItemStack item;

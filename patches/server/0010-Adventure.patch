@@ -2191,10 +2191,10 @@ index f30cdfa5fd294479e35680b2f758b3295f659b74..ec34e402104d7a696ea95e0b11ee7018
      public CommandSourceStack(CommandSource output, Vec3 pos, Vec2 rot, ServerLevel world, int level, String name, Component displayName, MinecraftServer server, @Nullable Entity entity) {
          this(output, pos, rot, world, level, name, displayName, server, entity, false, CommandResultCallback.EMPTY, EntityAnchorArgument.Anchor.FEET, CommandSigningContext.ANONYMOUS, TaskChainer.immediate(server));
 diff --git a/src/main/java/net/minecraft/commands/arguments/MessageArgument.java b/src/main/java/net/minecraft/commands/arguments/MessageArgument.java
-index 0047fd758ad43cc7b13355b60c410a9bcc37bec0..982b2bab27e3d55d0ba07060862c0c3183ad91b0 100644
+index 8f03eed020a99b96189f4f5d42d806d06f4d6b5e..55484826fc5ddd04ae024e25a0251796d7fa9c28 100644
 --- a/src/main/java/net/minecraft/commands/arguments/MessageArgument.java
 +++ b/src/main/java/net/minecraft/commands/arguments/MessageArgument.java
-@@ -53,17 +53,21 @@ public class MessageArgument implements SignedArgument<MessageArgument.Message>
+@@ -54,17 +54,21 @@ public class MessageArgument implements SignedArgument<MessageArgument.Message>
      private static void resolveSignedMessage(Consumer<PlayerChatMessage> callback, CommandSourceStack source, PlayerChatMessage message) {
          MinecraftServer minecraftServer = source.getServer();
          CompletableFuture<FilteredText> completableFuture = filterPlainText(source, message);
@@ -2584,10 +2584,10 @@ index c5ba5e30cd74ca2cfc3f952c7b992df239a53a34..fdb75db02603ef97b624219211a0db22
      @Override
      public PacketType<ClientboundSystemChatPacket> type() {
 diff --git a/src/main/java/net/minecraft/network/protocol/login/ClientboundLoginDisconnectPacket.java b/src/main/java/net/minecraft/network/protocol/login/ClientboundLoginDisconnectPacket.java
-index bb97fdb9aa6167083442a928276ebe4225a586ef..5d1758086ed4fce5b36a5b31df44ccea42abc590 100644
+index bb97fdb9aa6167083442a928276ebe4225a586ef..eeaa40e8121643c6c1d951e76e7361e29210ba48 100644
 --- a/src/main/java/net/minecraft/network/protocol/login/ClientboundLoginDisconnectPacket.java
 +++ b/src/main/java/net/minecraft/network/protocol/login/ClientboundLoginDisconnectPacket.java
-@@ -18,11 +18,15 @@ public class ClientboundLoginDisconnectPacket implements Packet<ClientLoginPacke
+@@ -18,11 +18,16 @@ public class ClientboundLoginDisconnectPacket implements Packet<ClientLoginPacke
      }
  
      private ClientboundLoginDisconnectPacket(FriendlyByteBuf buf) {
@@ -2599,8 +2599,9 @@ index bb97fdb9aa6167083442a928276ebe4225a586ef..5d1758086ed4fce5b36a5b31df44ccea
 -        buf.writeUtf(Component.Serializer.toJson(this.reason, RegistryAccess.EMPTY));
 +        // Paper start - Adventure
 +        // buf.writeUtf(Component.Serializer.toJson(this.reason, RegistryAccess.EMPTY));
-+        // In the login phase, buf.adventure$locale field is always null
-+        buf.writeJsonWithCodec(net.minecraft.network.chat.ComponentSerialization.localizedCodec(java.util.Locale.US), this.reason, FriendlyByteBuf.MAX_COMPONENT_STRING_LENGTH);
++        // In the login phase, buf.adventure$locale field is most likely null, but plugins may use internals to set it via the channel attribute
++        java.util.Locale bufLocale = buf.adventure$locale;
++        buf.writeJsonWithCodec(net.minecraft.network.chat.ComponentSerialization.localizedCodec(bufLocale == null ? java.util.Locale.US : bufLocale), this.reason, FriendlyByteBuf.MAX_COMPONENT_STRING_LENGTH);
 +        // Paper end - Adventure
      }
  
@@ -2871,7 +2872,7 @@ index e7c407039fef88ef01ba9b6be9ae5bcc3edc026f..5457358bc76889153036818fdfd70a04
  
      @Override
 diff --git a/src/main/java/net/minecraft/server/network/ServerGamePacketListenerImpl.java b/src/main/java/net/minecraft/server/network/ServerGamePacketListenerImpl.java
-index e244ac9f51a08603a7877e7e655fda26cd396772..556d8f23ee2de77cea71abcc0e56718e60b20b05 100644
+index 2de70e3a3038b2d2bb47b58f0e14d937c35d55ba..4acee8121ff62413dbbf2294d17da3bd2f974d5a 100644
 --- a/src/main/java/net/minecraft/server/network/ServerGamePacketListenerImpl.java
 +++ b/src/main/java/net/minecraft/server/network/ServerGamePacketListenerImpl.java
 @@ -45,6 +45,7 @@ import net.minecraft.nbt.CompoundTag;
@@ -3241,7 +3242,7 @@ index ed54c81a3269360acce674aa4e1d54ccb2461841..c9c849534c3998cfcab7ddcb12a71ccb
      }
  
 diff --git a/src/main/java/net/minecraft/world/item/ItemStack.java b/src/main/java/net/minecraft/world/item/ItemStack.java
-index b6cb1de08e955dfc99a0cb736b2ed456c99fde5c..abf502b8395bb0a8a32c1fdcd62532790deb1c6e 100644
+index 3457e1c9791b294b5e4dab478d90cdd1a1cf7fef..1138d238caa18171b6562cc748c92cec03bfbb97 100644
 --- a/src/main/java/net/minecraft/world/item/ItemStack.java
 +++ b/src/main/java/net/minecraft/world/item/ItemStack.java
 @@ -183,7 +183,15 @@ public final class ItemStack implements DataComponentHolder {
@@ -3326,7 +3327,7 @@ index 49c037e961c5ca5ba8d6a870cb32ffe8719adc91..2772c19f58a35713d61aab24f6f0d6f5
      }
  }
 diff --git a/src/main/java/org/bukkit/craftbukkit/CraftServer.java b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
-index 7f8864da8a6f9c2410191851add1ba566b8c171c..bec1fdabbc3727c1f7297b2d23914a5179f4adcb 100644
+index 2ea3ad9ab43dec0555d6716bebefbc3bb6553f1a..be068650a568fc1d0d3b9c5acd040adafb2344e1 100644
 --- a/src/main/java/org/bukkit/craftbukkit/CraftServer.java
 +++ b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
 @@ -644,8 +644,10 @@ public final class CraftServer implements Server {
@@ -3627,7 +3628,7 @@ index 69c62699e3412f2730e3db65f196099d77698980..4878a1b085a83dd4a8ffdc86250b8fb4
      // Paper end
  }
 diff --git a/src/main/java/org/bukkit/craftbukkit/Main.java b/src/main/java/org/bukkit/craftbukkit/Main.java
-index 2122d7316f55ab5bec7058fe1b8ee3ceb42deea7..43790f555743e9945c1b82cf8f2f4719feedc165 100644
+index 42a1a0588e2b506082499ac9791d039089a64631..9c1fab8db74757e1fb57d4f47099ba6e1536cd6d 100644
 --- a/src/main/java/org/bukkit/craftbukkit/Main.java
 +++ b/src/main/java/org/bukkit/craftbukkit/Main.java
 @@ -20,6 +20,12 @@ public class Main {
@@ -4676,10 +4677,10 @@ index 5725b0281ac53a2354b233223259d6784353bc6e..9ef939b76d06874b856e0c850addb364
      @Override
      public int getLineWidth() {
 diff --git a/src/main/java/org/bukkit/craftbukkit/event/CraftEventFactory.java b/src/main/java/org/bukkit/craftbukkit/event/CraftEventFactory.java
-index 39aad2d00227d94aa1d24c27a10d916b7d64888d..63e20db8ad84b332a4962d5cea83f1064b7c1a3d 100644
+index 20eb63eeac7f5c9a1d98a9aa8f90a588cb036c70..8f468a3bfa8ef381eabb45ebb3dd9a4942e98dd5 100644
 --- a/src/main/java/org/bukkit/craftbukkit/event/CraftEventFactory.java
 +++ b/src/main/java/org/bukkit/craftbukkit/event/CraftEventFactory.java
-@@ -911,7 +911,7 @@ public class CraftEventFactory {
+@@ -917,7 +917,7 @@ public class CraftEventFactory {
          return event;
      }
  
@@ -4688,7 +4689,7 @@ index 39aad2d00227d94aa1d24c27a10d916b7d64888d..63e20db8ad84b332a4962d5cea83f106
          CraftPlayer entity = victim.getBukkitEntity();
          CraftDamageSource bukkitDamageSource = new CraftDamageSource(damageSource);
          PlayerDeathEvent event = new PlayerDeathEvent(entity, bukkitDamageSource, drops, victim.getExpReward(damageSource.getEntity()), 0, deathMessage);
-@@ -944,7 +944,7 @@ public class CraftEventFactory {
+@@ -950,7 +950,7 @@ public class CraftEventFactory {
       * Server methods
       */
      public static ServerListPingEvent callServerListPingEvent(SocketAddress address, String motd, int numPlayers, int maxPlayers) {
@@ -4802,10 +4803,10 @@ index c9cc23757a9fcc58d30b2915d4c5cfbc7d1c767a..fc0e1212022d1aa3506699b60ef33819
              return this.title;
          }
 diff --git a/src/main/java/org/bukkit/craftbukkit/inventory/CraftInventoryView.java b/src/main/java/org/bukkit/craftbukkit/inventory/CraftInventoryView.java
-index 6871fbde3498f18274029638e0cd27d1a78bb1d7..5888a44d7f1f06e6308b068e57c295de366061cd 100644
+index 07d406de7123593dc470af2723f2a9a2dc2157b0..01fbd8a55866af3e371c8a2eef23ef6e9ca3226d 100644
 --- a/src/main/java/org/bukkit/craftbukkit/inventory/CraftInventoryView.java
 +++ b/src/main/java/org/bukkit/craftbukkit/inventory/CraftInventoryView.java
-@@ -73,6 +73,13 @@ public class CraftInventoryView extends CraftAbstractInventoryView {
+@@ -73,6 +73,13 @@ public class CraftInventoryView<T extends AbstractContainerMenu> extends CraftAb
          return CraftItemStack.asCraftMirror(this.container.getSlot(slot).getItem());
      }
  
@@ -5164,10 +5165,10 @@ index c71a4971f127fdfc753306019313ce1a31201120..fd3b12477c30d1eabdbe57ea77902793
 +    // Paper end
  }
 diff --git a/src/main/java/org/bukkit/craftbukkit/inventory/CraftMetaItem.java b/src/main/java/org/bukkit/craftbukkit/inventory/CraftMetaItem.java
-index e56e6d07f297491c8f92598b8105bfebead7a0a1..86a5e4f7b2a0d50d0a58d88e10a277cfbd09bf9d 100644
+index 1c5d63fb6a9ed5cc40d735793cf5889e189feadf..568d6fab743039b20715d8181555f52baa05f0f3 100644
 --- a/src/main/java/org/bukkit/craftbukkit/inventory/CraftMetaItem.java
 +++ b/src/main/java/org/bukkit/craftbukkit/inventory/CraftMetaItem.java
-@@ -952,6 +952,18 @@ class CraftMetaItem implements ItemMeta, Damageable, Repairable, BlockDataMeta {
+@@ -959,6 +959,18 @@ class CraftMetaItem implements ItemMeta, Damageable, Repairable, BlockDataMeta {
          return !(this.hasDisplayName() || this.hasItemName() || this.hasLocalizedName() || this.hasEnchants() || (this.lore != null) || this.hasCustomModelData() || this.hasBlockData() || this.hasRepairCost() || !this.unhandledTags.build().isEmpty() || !this.removedTags.isEmpty() || !this.persistentDataContainer.isEmpty() || this.hideFlag != 0 || this.isHideTooltip() || this.isUnbreakable() || this.hasEnchantmentGlintOverride() || this.isFireResistant() || this.hasMaxStackSize() || this.hasRarity() || this.hasFood() || this.hasTool() || this.hasDamage() || this.hasMaxDamage() || this.hasAttributeModifiers() || this.customTag != null);
      }
  
@@ -5186,7 +5187,7 @@ index e56e6d07f297491c8f92598b8105bfebead7a0a1..86a5e4f7b2a0d50d0a58d88e10a277cf
      @Override
      public String getDisplayName() {
          return CraftChatMessage.fromComponent(this.displayName);
-@@ -982,6 +994,18 @@ class CraftMetaItem implements ItemMeta, Damageable, Repairable, BlockDataMeta {
+@@ -989,6 +1001,18 @@ class CraftMetaItem implements ItemMeta, Damageable, Repairable, BlockDataMeta {
          return this.itemName != null;
      }
  
@@ -5205,7 +5206,7 @@ index e56e6d07f297491c8f92598b8105bfebead7a0a1..86a5e4f7b2a0d50d0a58d88e10a277cf
      @Override
      public String getLocalizedName() {
          return this.getDisplayName();
-@@ -1001,6 +1025,18 @@ class CraftMetaItem implements ItemMeta, Damageable, Repairable, BlockDataMeta {
+@@ -1008,6 +1032,18 @@ class CraftMetaItem implements ItemMeta, Damageable, Repairable, BlockDataMeta {
          return this.lore != null && !this.lore.isEmpty();
      }
  
@@ -5588,7 +5589,7 @@ index ff040613083c015d9c52c0995591b64305fd5018..1b552b3f05ac7fc44450de4b1ec78907
  
          boolean hadFormat = false;
 diff --git a/src/main/java/org/bukkit/craftbukkit/util/CraftMagicNumbers.java b/src/main/java/org/bukkit/craftbukkit/util/CraftMagicNumbers.java
-index aa6a9dcd5528df38dddc0c661334c35658a19cee..5a89b9ca6a62f0bfb5fe01ed4097870788cf5d83 100644
+index eeffc4be4ae7168c9f69edbbff6642fd4c214b3d..b64be3f292d88fa60746a3fe542740ef8ad2b41c 100644
 --- a/src/main/java/org/bukkit/craftbukkit/util/CraftMagicNumbers.java
 +++ b/src/main/java/org/bukkit/craftbukkit/util/CraftMagicNumbers.java
 @@ -77,6 +77,43 @@ public final class CraftMagicNumbers implements UnsafeValues {

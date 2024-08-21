@@ -19,6 +19,27 @@ index 637fa73d4366c2d88e2716e5c8d3465706d788a7..0f03c546ecdd6383fb36a362d18d6fb5
          this.flicker = flicker;
          this.trail = trail;
          this.colors = colors;
+diff --git a/src/main/java/org/bukkit/inventory/ItemType.java b/src/main/java/org/bukkit/inventory/ItemType.java
+index a6d1dde422de98f178c0c9add99e01203a35e5cb..01ec84248a681180088fb1d7d22b80f8572b0305 100644
+--- a/src/main/java/org/bukkit/inventory/ItemType.java
++++ b/src/main/java/org/bukkit/inventory/ItemType.java
+@@ -31,6 +31,7 @@ import org.bukkit.inventory.meta.MapMeta;
+ import org.bukkit.inventory.meta.MusicInstrumentMeta;
+ import org.bukkit.inventory.meta.OminousBottleMeta;
+ import org.bukkit.inventory.meta.PotionMeta;
++import org.bukkit.inventory.meta.ShieldMeta;
+ import org.bukkit.inventory.meta.SkullMeta;
+ import org.bukkit.inventory.meta.SpawnEggMeta;
+ import org.bukkit.inventory.meta.SuspiciousStewMeta;
+@@ -1893,7 +1894,7 @@ public interface ItemType extends Keyed, Translatable, net.kyori.adventure.trans
+     /**
+      * ItemMeta: {@link BlockStateMeta}
+      */
+-    ItemType.Typed<BlockStateMeta> SHIELD = getItemType("shield");
++    ItemType.Typed<ShieldMeta> SHIELD = getItemType("shield"); // Paper - update shield to its new meta
+     ItemType.Typed<ItemMeta> TOTEM_OF_UNDYING = getItemType("totem_of_undying");
+     ItemType.Typed<ItemMeta> SHULKER_SHELL = getItemType("shulker_shell");
+     ItemType.Typed<ItemMeta> IRON_NUGGET = getItemType("iron_nugget");
 diff --git a/src/main/java/org/bukkit/inventory/meta/Damageable.java b/src/main/java/org/bukkit/inventory/meta/Damageable.java
 index ff6818b6d9e0207eafdd749928f33aeac3f27191..992f39da07bafe9769effaa7dc6adc018c89329d 100644
 --- a/src/main/java/org/bukkit/inventory/meta/Damageable.java
@@ -71,6 +92,31 @@ index ff6818b6d9e0207eafdd749928f33aeac3f27191..992f39da07bafe9769effaa7dc6adc01
      /**
       * Checks to see if this item has a maximum amount of damage.
       *
+diff --git a/src/main/java/org/bukkit/inventory/meta/FireworkMeta.java b/src/main/java/org/bukkit/inventory/meta/FireworkMeta.java
+index 9bd15803cd3526da951ed197305a1b9385305927..5833c4c16b08a0f338a5cd7c0011e82eeda222c2 100644
+--- a/src/main/java/org/bukkit/inventory/meta/FireworkMeta.java
++++ b/src/main/java/org/bukkit/inventory/meta/FireworkMeta.java
+@@ -75,10 +75,20 @@ public interface FireworkMeta extends ItemMeta {
+      */
+     boolean hasEffects();
+ 
++    // Paper start - add hasPower
++    /**
++     * Checks if power is defined on this meta.
++     *
++     * @return true if there is a power specified
++     */
++    boolean hasPower();
++    // Paper end - add hasPower
++
+     /**
+      * Gets the approximate height the firework will fly.
+      *
+      * @return approximate flight height of the firework.
++     * @see #hasPower()
+      */
+     int getPower();
+ 
 diff --git a/src/main/java/org/bukkit/inventory/meta/ItemMeta.java b/src/main/java/org/bukkit/inventory/meta/ItemMeta.java
 index 1a4260b00b193b94ce4b1b2954644f4e41baff4c..5d5fcb2720b62e47d47f441032c4de02574b051a 100644
 --- a/src/main/java/org/bukkit/inventory/meta/ItemMeta.java

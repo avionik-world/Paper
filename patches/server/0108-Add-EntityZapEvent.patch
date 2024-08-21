@@ -28,10 +28,10 @@ index 63c10be6eacd7108b8b4795d76bf624e0614440a..243eb1e54293c763a06febff551c0513
                  entitywitch.finalizeSpawn(world, world.getCurrentDifficultyAt(entitywitch.blockPosition()), MobSpawnType.CONVERSION, (SpawnGroupData) null);
                  entitywitch.setNoAi(this.isNoAi());
 diff --git a/src/main/java/org/bukkit/craftbukkit/event/CraftEventFactory.java b/src/main/java/org/bukkit/craftbukkit/event/CraftEventFactory.java
-index bb296f649afd143adad47595479532cfdd778b71..5cf1b15160647b6e8e42a167502643882a231c55 100644
+index 96e0fc5c8a018fd579f24529175decdac634cfa1..50f33c6029c190f947b6bf6215004416b034c0cc 100644
 --- a/src/main/java/org/bukkit/craftbukkit/event/CraftEventFactory.java
 +++ b/src/main/java/org/bukkit/craftbukkit/event/CraftEventFactory.java
-@@ -1211,6 +1211,14 @@ public class CraftEventFactory {
+@@ -1217,6 +1217,14 @@ public class CraftEventFactory {
          return !event.isCancelled();
      }
  
